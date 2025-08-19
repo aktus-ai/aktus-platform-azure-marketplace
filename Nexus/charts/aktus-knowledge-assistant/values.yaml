@@ -1,0 +1,28 @@
+aktusKnowledgeAssistant:
+  image: aktusmarketplace.azurecr.io/aktus-knowledge-assistant:latest
+  imagePullPolicy: Always
+  port: 80
+  service:
+    type: ClusterIP
+    port: 8080
+  
+  viteSocketUrl: "ws://<IPv4>/chat"
+  viteApiBaseUrl: "http://<IPv4>/db-manager"
+  viteWaitlistFormId: "<random-string>"
+  viteLeaseApiBaseUrl: "http://<IPv4>"
+  viteApiEmbedUrl: "http://<IPv4>/embeddings"
+  viteCloudProvider: "gcp"
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m" 
+      memory: "1Gi"
+
+serviceAccount:
+  name: "nexus-primary-cluster-sa"
+
+nodeSelector:
+  agentpool: standardpool
