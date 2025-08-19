@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  labels:
+    app: aktus-postgres-backup
+spec:
+  # Run daily at 3:00 AM (different from Hermus to avoid conflicts)
+  schedule: "0 3 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: postgres-backup
+              image: postgres:13.16
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/bash", "/scripts/backup.sh"]
+              env:
+                - name: POSTGRES_HOST
+                  value: "aktus-postgres.{{ .Release.Namespace }}.svc.cluster.local"
+                - name: POSTGRES_USER
+                  value: "{{ .Values.aktusPostgres.username }}"
+                - name: POSTGRES_PASSWORD
+                  value: "{{ .Values.aktusPostgres.password }}"
+                - name: POSTGRES_DB
+                  value: "{{ .Values.aktusPostgres.database }}"
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backup
+                - name: backup-script
+                  mountPath: /scripts
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "512Mi"
+          volumes:
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: postgres-backup-storage
+            - name: backup-script
+              configMap:
+                name: postgres-backup-script
+                defaultMode: 0755 
