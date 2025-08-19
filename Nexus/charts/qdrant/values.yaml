@@ -1,0 +1,38 @@
+qdrant:
+  image: qdrant/qdrant:v1.13.1
+  imagePullPolicy: Always
+  port: 6333
+  serviceAccount: nexus-primary-cluster-sa
+  nodeSelector:
+    agentpool: computepool
+  service:
+    type: ClusterIP
+    port: 6333
+  storage:
+    bucketName: "aktus-ai-platform-qdrant"
+    readOnly: false
+    mountOptions: "implicit-dirs,file-mode=0666,dir-mode=0777"
+  persistence:
+    enabled: true
+    size: 500Gi
+    storageClass: managed-csi
+    accessMode: ReadWriteOnce
+  resources:
+    requests:
+      cpu: "2000m"
+      memory: "4Gi"
+    limits:
+      cpu: "4000m"
+      memory: "8Gi"
+  livenessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  config:
+    allowCrossOrigin: true
+    serviceHost: "0.0.0.0"
+    servicePort: 6333
+    snapshotsIntervalSec: 300
+    maxOptimizationThreads: 4 
