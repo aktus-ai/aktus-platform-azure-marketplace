@@ -1,0 +1,59 @@
+# service-model-inference/values.yaml
+aktusInference:
+  image: aktusmarketplace.azurecr.io/aktus-inference:latest
+  nodeSelector: 
+    kubernetes.io/arch: amd64
+    kubernetes.io/os: linux
+    kubernetes.azure.com/accelerator: nvidia
+    agentpool: gpupool
+  imagePullPolicy: Always
+  platform: linux/amd64
+  grpcPort: 50051
+  serviceAccount: nexus-primary-cluster-sa
+  
+  # Model configuration paths
+  modelConfig:
+    minicpm:
+      baseModelPath: "/models/minicpm/production/"
+      peftModelPath: "/models/minicpm/production/"
+      processorPath: "/models/minicpm/production/"
+    yolo:
+      modelPath: "/models/yolo/roboflow_yolo-v1/roboflow_yolo_weights_v1.pt"
+  
+  # Server configuration
+  serverConfig:
+    uri: "[::]:50051"
+    enableFlashAttention: 0
+    hfLocalFilesOnly: 1
+    defaultDevice: "cuda"
+  
+  # Path configuration (mount points)
+  paths:
+    docUpload: "/document_upload"
+    docProcessing: "/doc_processing"
+    nexusModels: "/models"
+  
+  # Azure Blob Storage configuration
+  storage:
+    docUpload:
+      storageAccount: "nexusazurestorage"
+      containerName: "nexus-upload"
+      readOnly: false
+    docProcessing:
+      storageAccount: "nexusazurestorage"
+      containerName: "nexus-processing"
+      readOnly: false
+    nexusModels:
+      storageAccount: "nexusazurestorage"
+      containerName: "nexus-models"
+      readOnly: false
+  
+  resources:
+    requests:
+      cpu: "2000m"
+      memory: "8Gi"
+      nvidia.com/gpu: 1
+    limits:
+      cpu: "4000m"
+      memory: "16Gi"
+      nvidia.com/gpu: 1
