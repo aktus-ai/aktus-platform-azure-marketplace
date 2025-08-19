@@ -1,0 +1,67 @@
+# aktus-multimodal-data-ingestion-service/values.yaml
+aktusMdi:
+  image: aktusmarketplace.azurecr.io/aktus-mdi:latest
+  imagePullPolicy: Always
+  platform: linux/amd64
+  serviceAccount: nexus-primary-cluster-sa
+  ports:
+    flower: 5555
+    ocr: 5315
+    layout: 5316
+  rabbitmq:
+    username: "guest"
+    password: "guest"
+    host: "rabbitmq"
+    port: "5672"
+    vhost: "/"
+  redis:
+    host: "redis"
+    port: "6379"
+  modelInference:
+    host: "aktus-inference:50051"
+  vectorEmbedding:
+    host: "aktus-embedding:8080"
+  paths:
+    docUpload: "/document_upload"
+    docProcessing: "/doc_processing"
+    extractedData: "/extracted_data"
+  
+  # Azure Blob Storage configuration
+  storage:
+    docProcessing:
+      storageAccount: "nexusazurestorage"
+      containerName: "nexus-processing"
+      readOnly: false
+    extractedData:
+      storageAccount: "nexusazurestorage"
+      containerName: "nexus-extracted"
+      readOnly: false
+    docUpload:
+      storageAccount: "nexusazurestorage"
+      containerName: "nexus-upload"
+      readOnly: false
+  
+  resources:
+    requests:
+      cpu: "12000m"
+      memory: "50Gi"
+  
+  config:
+    flower:
+      unauthenticatedApi: "true"
+    chartClassifier:
+      modelId: "korazer/chart-test-classify"
+      defaultTargetClassIdx: "0"
+    docClassifier:
+      modelId: "naver-clova-ix/donut-base-finetuned-rvlcdip"
+      defaultDevice: "cuda"
+    tableTransformer:
+      defaultDevice: "detect"
+    tableParser:
+      defaultDevice: "detect"
+    yolo:
+      modelPath: "/models/yolo/yolov10x_best.pt"
+      defaultDevice: "cuda"
+
+nodeSelector:
+  agentpool: computepool
