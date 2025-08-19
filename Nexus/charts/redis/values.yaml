@@ -1,0 +1,13 @@
+# charts/redis/values.yaml
+redis:
+  image: redis:7.4-alpine
+  port: 6379
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: managed-csi
+    accessMode: ReadWriteOnce
+    subPath: redis-data
+
+nodeSelector:
+  agentpool: standardpool
