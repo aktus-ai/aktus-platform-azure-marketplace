@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: aktus-research
+  labels:
+    app: aktus-research-service
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: "{{ .Release.Name }}"
+    meta.helm.sh/release-namespace: "{{ .Release.Namespace }}"
+spec:
+  type: LoadBalancer
+  # loadBalancerIP: "34.171.38.68"
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: aktus-research-service
