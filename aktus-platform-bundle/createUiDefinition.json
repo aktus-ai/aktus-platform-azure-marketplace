@@ -1,0 +1,267 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+    "handler": "Microsoft.Azure.CreateUIDef",
+    "version": "0.1.2-preview",
+    "parameters": {
+        "config": {
+            "isWizard": false,
+            "basics": {
+                "description": "**Nexus Enterprise Plan** is our premium offering designed for large enterprises requiring the most advanced document intelligence capabilities with enterprise-grade security, compliance, and support. This comprehensive solution includes unlimited document processing, advanced multimodal AI, enterprise security & compliance, and dedicated enterprise support with 99.9% uptime SLA.",
+                "resourceGroup": {
+                    "allowExisting": true
+                },
+                "subscription": {
+                    "constraints": {
+                        "validations": [
+                            {
+                                "permission": "Microsoft.ContainerService/managedClusters/read",
+                                "message": "Must have read access to AKS clusters"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "basics": [
+            {
+                "name": "clusterLookupControl",
+                "type": "Microsoft.Solutions.ArmApiControl",
+                "request": {
+                    "method": "GET",
+                    "path": "[concat(subscription().id, '/providers/Microsoft.ContainerService/managedClusters?api-version=2021-03-01')]"
+                }
+            }
+        ],
+        "steps": [
+            {
+                "name": "clusterDetails",
+                "label": "Cluster Configuration",
+                "elements": [
+                    {
+                        "name": "clusterSelection",
+                        "type": "Microsoft.Common.DropDown",
+                        "label": "AKS Cluster",
+                        "placeholder": "Select an AKS cluster",
+                        "toolTip": "Select the Azure Kubernetes Service cluster where you want to deploy the Nexus Enterprise Platform",
+                        "constraints": {
+                            "allowedValues": "[map(steps('basics').clusterLookupControl.value, (item) => parse(concat('{\"label\":\"', item.name, ' (', item.location, ')\",\"value\":{\"name\":\"', item.name, '\",\"resourceGroup\":\"', last(take(split(item.id, '/'), 5)), '\",\"location\":\"', item.location, '\"}}')))]",
+                            "required": true
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "namespace",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Kubernetes Namespace",
+                        "defaultValue": "nexus-enterprise",
+                        "toolTip": "Enter the Kubernetes namespace where the Nexus Enterprise platform will be deployed",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+                            "validationMessage": "Namespace must be lowercase alphanumeric characters or '-', and must start and end with an alphanumeric character"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "apiSecrets",
+                "label": "API Configuration",
+                "elements": [
+                    {
+                        "name": "huggingfaceApiKey",
+                        "type": "Microsoft.Common.PasswordBox",
+                        "label": {
+                            "password": "HuggingFace API Key",
+                            "confirmPassword": "Confirm HuggingFace API Key"
+                        },
+                        "toolTip": "Enter your HuggingFace API key (starts with 'hf_'). This is required for advanced AI model access.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^hf_[a-zA-Z0-9]{34,}$",
+                            "validationMessage": "HuggingFace API key must start with 'hf_' followed by at least 34 characters"
+                        },
+                        "options": {
+                            "hideConfirmation": false
+                        }
+                    },
+                    {
+                        "name": "openaiApiKey",
+                        "type": "Microsoft.Common.PasswordBox",
+                        "label": {
+                            "password": "OpenAI API Key",
+                            "confirmPassword": "Confirm OpenAI API Key"
+                        },
+                        "toolTip": "Enter your OpenAI API key (starts with 'sk-'). This is required for GPT model integration and advanced language processing.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^sk-[a-zA-Z0-9\\-_]{20,}$",
+                            "validationMessage": "OpenAI API key must start with 'sk-' followed by at least 20 characters"
+                        },
+                        "options": {
+                            "hideConfirmation": false
+                        }
+                    },
+                    {
+                        "name": "apiKeyNotice",
+                        "type": "Microsoft.Common.InfoBox",
+                        "visible": true,
+                        "options": {
+                            "icon": "Info",
+                            "text": "🔐 **API Key Security**: Your API keys will be securely stored as Kubernetes secrets and encrypted at rest. These keys are required for the AI services to function properly. You can obtain these keys from:\n\n• **HuggingFace**: https://huggingface.co/settings/tokens\n• **OpenAI**: https://platform.openai.com/api-keys"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "storageSettings",
+                "label": "Azure Blob Storage Configuration",
+                "elements": [
+                    {
+                        "name": "storageAccountName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Storage Account Name",
+                        "defaultValue": "nexusenterprisestorage",
+                        "toolTip": "Name of the Azure Storage Account for blob storage (must be globally unique)",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[a-z0-9]{3,24}$",
+                            "validationMessage": "Storage account name must be 3-24 characters long and contain only lowercase letters and numbers"
+                        }
+                    },
+                    {
+                        "name": "storageAccountKey",
+                        "type": "Microsoft.Common.PasswordBox",
+                        "label": {
+                            "password": "Storage Account Access Key",
+                            "confirmPassword": "Confirm Storage Account Key"
+                        },
+                        "toolTip": "Enter the access key for your Azure Storage Account. You can find this in Azure Portal > Storage Account > Access Keys.",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[A-Za-z0-9+/]{88}==$",
+                            "validationMessage": "Storage account key must be a valid base64 encoded key (88 characters + ==)"
+                        },
+                        "options": {
+                            "hideConfirmation": false
+                        }
+                    },
+                    {
+                        "name": "uploadContainerName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Document Upload Container",
+                        "defaultValue": "nexus-upload",
+                        "toolTip": "Name of the blob container for document uploads",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[a-z0-9]([a-z0-9\\-]*[a-z0-9])?$",
+                            "validationMessage": "Container name must be 3-63 characters long, lowercase letters, numbers, and hyphens only"
+                        }
+                    },
+                    {
+                        "name": "processingContainerName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Document Processing Container",
+                        "defaultValue": "nexus-processing",
+                        "toolTip": "Name of the blob container for document processing",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[a-z0-9]([a-z0-9\\-]*[a-z0-9])?$",
+                            "validationMessage": "Container name must be 3-63 characters long, lowercase letters, numbers, and hyphens only"
+                        }
+                    },
+                    {
+                        "name": "extractedDataContainerName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Extracted Data Container",
+                        "defaultValue": "nexus-extracted",
+                        "toolTip": "Name of the blob container for extracted data storage",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[a-z0-9]([a-z0-9\\-]*[a-z0-9])?$",
+                            "validationMessage": "Container name must be 3-63 characters long, lowercase letters, numbers, and hyphens only"
+                        }
+                    },
+                    {
+                        "name": "modelsContainerName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "AI Models Container",
+                        "defaultValue": "nexus-models",
+                        "toolTip": "Name of the blob container for AI models storage",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^[a-z0-9]([a-z0-9\\-]*[a-z0-9])?$",
+                            "validationMessage": "Container name must be 3-63 characters long, lowercase letters, numbers, and hyphens only"
+                        }
+                    },
+                    {
+                        "name": "postgresPassword",
+                        "type": "Microsoft.Common.PasswordBox",
+                        "label": {
+                            "password": "Enterprise Database Password"
+                        },
+                        "toolTip": "Secure password for the enterprise PostgreSQL database with encryption at rest",
+                        "constraints": {
+                            "required": true,
+                            "regex": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{12,}$",
+                            "validationMessage": "Enterprise password must be at least 12 characters long and contain at least one uppercase letter, one lowercase letter, and one number"
+                        },
+                        "options": {
+                            "hideConfirmation": false
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "enterpriseFeatures",
+                "label": "Enterprise Features",
+                "elements": [
+                    {
+                        "name": "enableGpuServices",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "Enable Advanced Multimodal AI (GPU Required)",
+                        "toolTip": "Enable GPU-accelerated inference services for premium AI models with enhanced accuracy (requires GPU node pool in your AKS cluster)",
+                        "defaultValue": true
+                    },
+                    {
+                        "name": "replicaCount",
+                        "type": "Microsoft.Common.Slider",
+                        "min": 1,
+                        "max": 10,
+                        "label": "High Availability Replicas",
+                        "defaultValue": 2,
+                        "showStepMarkers": false,
+                        "toolTip": "Number of replicas for core services to ensure enterprise-grade availability",
+                        "constraints": {
+                            "required": false
+                        }
+                    },
+                    {
+                        "name": "enableEnterpriseSecurity",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "Enable Enterprise Security Features",
+                        "toolTip": "Enable advanced security features including audit logs, data encryption, and compliance monitoring",
+                        "defaultValue": true
+                    }
+                ]
+            }
+        ],
+        "outputs": {
+            "clusterName": "[steps('clusterDetails').clusterSelection.name]",
+            "clusterResourceGroup": "[steps('clusterDetails').clusterSelection.resourceGroup]",
+            "clusterLocation": "[steps('clusterDetails').clusterSelection.location]",
+            "namespace": "[steps('clusterDetails').namespace]",
+            "huggingfaceApiKey": "[steps('apiSecrets').huggingfaceApiKey]",
+            "openaiApiKey": "[steps('apiSecrets').openaiApiKey]",
+            "storageAccountName": "[steps('storageSettings').storageAccountName]",
+            "storageAccountKey": "[steps('storageSettings').storageAccountKey]",
+            "uploadContainerName": "[steps('storageSettings').uploadContainerName]",
+            "processingContainerName": "[steps('storageSettings').processingContainerName]",
+            "extractedDataContainerName": "[steps('storageSettings').extractedDataContainerName]",
+            "modelsContainerName": "[steps('storageSettings').modelsContainerName]",
+            "enableGpuServices": "[steps('enterpriseFeatures').enableGpuServices]",
+            "replicaCount": "[steps('enterpriseFeatures').replicaCount]",
+            "enableEnterpriseSecurity": "[steps('enterpriseFeatures').enableEnterpriseSecurity]",
+            "postgresPassword": "[steps('storageSettings').postgresPassword]"
+        }
+    }
+} 
