@@ -1,0 +1,12 @@
+# aktus-embedding-service/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: graphrag-data-pvc
+spec:
+  accessModes:
+    - {{ .Values.storage.graphragData.accessMode | default "ReadWriteOnce" }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.graphragData.size }}
+  storageClassName: {{ .Values.storage.graphragData.storageClass | default "managed-csi" }}

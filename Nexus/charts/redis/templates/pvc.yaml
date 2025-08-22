@@ -1,0 +1,12 @@
+# charts/redis/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-redis-data
+spec:
+  accessModes:
+    - {{ .Values.redis.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.redis.persistence.size }}
+  storageClassName: {{ .Values.redis.persistence.storageClass }}

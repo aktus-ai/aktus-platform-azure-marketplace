@@ -1,0 +1,51 @@
+# charts/redis/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      containers:
+        - name: redis
+          image: {{ .Values.redis.image }}
+          args: ["--appendonly", "yes"]
+          ports:
+            - containerPort: {{ .Values.redis.port }}
+              name: redis
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+              subPath: {{ .Values.redis.persistence.subPath }}
+          livenessProbe:
+            tcpSocket:
+              port: redis
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1000m"
+              memory: "2Gi"
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-redis-data

@@ -1,0 +1,19 @@
+# aktus-multimodal-data-ingestion-service/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: aktus-multimodal-data-ingestion
+spec:
+  type: LoadBalancer
+  ports:
+    - port: {{ .Values.aktusMdi.ports.flower }}
+      targetPort: flower
+      name: flower
+    - port: {{ .Values.aktusMdi.ports.ocr }}
+      targetPort: ocr
+      name: ocr
+    - port: {{ .Values.aktusMdi.ports.layout }}
+      targetPort: layout
+      name: layout
+  selector:
+    app: aktus-multimodal-data-ingestion-service

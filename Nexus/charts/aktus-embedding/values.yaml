@@ -1,0 +1,47 @@
+# aktus-embedding-service/values.yaml
+aktusEmbedding:
+  image: aktusmarketplace.azurecr.io/aktus-embedding:latest
+  imagePullPolicy: Always
+  serviceAccount: nexus-primary-cluster-sa
+  port: 8080
+  auth:
+    username: "guest"
+    password: "guest"
+  uvicorn:
+    host: "0.0.0.0"
+    port: "8080"
+    logLevel: "info"
+    timeoutKeepalive: "3600"
+  mdiService:
+    endpoint: "http://aktus-multimodal-data-ingestion:5315"
+  dbManager:
+    host: "http://aktus-database:8080"
+  paths:
+    extractedData: "/extracted_data"
+    docUpload: "/document_upload"
+    docProcessing: "/doc_processing"
+    chromaDb: "/chroma"
+    graphragData: "/graphrag_data"
+  storage:
+    extractedData:
+      storageAccount: "nexusazurestorage"
+      containerName: "nexus-extracted"
+      readOnly: false
+      
+  resources:
+    requests:
+      cpu: "12000m"
+      memory: "50Gi"
+      ephemeral-storage: "5Gi"
+      
+storage:
+  graphragData:
+    size: "500Gi"
+    storageClass: "managed-csi"
+    accessMode: "ReadWriteOnce"
+      
+serviceAccount:
+  name: "nexus-primary-cluster-sa"
+
+nodeSelector:
+  agentpool: computepool

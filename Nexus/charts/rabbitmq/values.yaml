@@ -1,0 +1,13 @@
+# charts/rabbitmq/values.yaml
+rabbitmq:
+  image: rabbitmq:3-management-alpine
+  username: guest
+  password: guest
+  managementPort: 15672
+  amqpPort: 5672
+  definitions:
+    enabled: true
+    configMap: rabbitmq-definitions
+
+nodeSelector:
+  agentpool: standardpool

@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aktus-research
+  annotations:
+    gke-gcsfuse/volumes: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aktus-research-service
+  template:
+    metadata:
+      annotations:
+        gke-gcsfuse/volumes: "true"
+      labels:
+        app: aktus-research-service
+    spec:
+      terminationGracePeriodSeconds: 60
+      
+      serviceAccountName: nexus-primary-cluster-sa
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      containers:
+        - name: aktus-research-service
+          image: {{ .Values.aktusResearch.image }}
+          imagePullPolicy: {{ .Values.aktusResearch.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.aktusResearch.port }}
+              name: http
+          env:
+            - name: EXPERIMENTAL
+              value: "true"
+            - name: CREDENTIALS_USERNAME
+              value: "{{ .Values.aktusResearch.auth.username }}"
+            - name: CREDENTIALS_PASSWORD
+              value: "{{ .Values.aktusResearch.auth.password }}"
+            - name: UVICORN_HOST
+              value: "{{ .Values.aktusResearch.uvicorn.host }}"
+            - name: UVICORN_PORT
+              value: "{{ .Values.aktusResearch.uvicorn.port }}"
+            - name: UVICORN_LOG_LEVEL
+              value: "{{ .Values.aktusResearch.uvicorn.logLevel }}"
+            - name: UVICORN_TIMEOUT_KEEP_ALIVE
+              value: "{{ .Values.aktusResearch.uvicorn.timeoutKeepAlive }}"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: aktus-openai-secret
+                  key: aktus-openai-key
+            - name: AKTUS_CHAT_SERVER_ADDRESS
+              value: "{{ .Values.aktusResearch.modelInference.address }}"
+            - name: DOC_UPLOAD_DIR
+              value: "{{ .Values.aktusResearch.paths.docUpload }}"
+            - name: DOC_IMAGE_DIR
+              value: "{{ .Values.aktusResearch.paths.docImage }}"
+            - name: EXTRACTED_DATA_DIR
+              value: "{{ .Values.aktusResearch.paths.extractedData }}"
+            - name: ITERDRAG_ENDPOINT
+              value: "http://{{ .Values.aktusResearch.embeddingService.host }}/iterdrag/"
+            - name: GRAPHRAG_ENDPOINT
+              value: "http://aktus-embedding:8080/graphrag/search"
+            - name: ENV
+              value: "research"
+            - name: CONTEXT_PATH
+              value: /extracted_data/lease-abstraction/2025-leases/context.txt
+            - name: ENABLE_LEASE_DEMO
+              value: 'true'
+            - name: LEASE_DATA_PATH
+              value: /extracted_data
+            - name: LEASE_DATA_ABSTRACT_FOLDER
+              value: abstract
+            - name: LEASE_DATA_CASHFLOW_FOLDER
+              value: cashflow
+            - name: VDB_ENDPOINT
+              value: http://aktus-embedding:8080
+            - name: DB_MANAGER_ENDPOINT
+              value: http://aktus-database:8080
+            - name: REDIS_BACKEND_URI
+              value: redis
+          volumeMounts:
+            - name: document-upload
+              mountPath: {{ .Values.aktusResearch.paths.docUpload }}
+            - name: doc-processing
+              mountPath: {{ .Values.aktusResearch.paths.docImage }}
+            - name: extracted-data
+              mountPath: {{ .Values.aktusResearch.paths.extractedData }}
+          resources:
+            {{- toYaml .Values.aktusResearch.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: {{ .Values.healthcheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthcheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthcheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.healthcheck.failureThreshold }}
+      volumes:
+        - name: document-upload
+          persistentVolumeClaim:
+            claimName: nexus-upload-pvc
+        - name: doc-processing
+          persistentVolumeClaim:
+            claimName: nexus-processing-pvc
+        - name: extracted-data
+          persistentVolumeClaim:
+            claimName: nexus-extracted-pvc
