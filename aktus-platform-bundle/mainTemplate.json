@@ -1,0 +1,201 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "clusterName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the AKS cluster"
+            }
+        },
+        "clusterResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource group of the AKS cluster"
+            }
+        },
+        "clusterLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "Location of the AKS cluster"
+            }
+        },
+        "namespace": {
+            "type": "string",
+            "defaultValue": "nexus-enterprise",
+            "metadata": {
+                "description": "Kubernetes namespace for Nexus Enterprise deployment"
+            }
+        },
+        "huggingfaceApiKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "HuggingFace API key for AI model access"
+            }
+        },
+        "openaiApiKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "OpenAI API key for GPT model integration"
+            }
+        },
+        "storageAccountName": {
+            "type": "string",
+            "defaultValue": "nexusenterprisestorage",
+            "metadata": {
+                "description": "Azure Storage Account name for blob storage"
+            }
+        },
+        "storageAccountKey": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Azure Storage Account access key"
+            }
+        },
+        "uploadContainerName": {
+            "type": "string",
+            "defaultValue": "nexus-upload",
+            "metadata": {
+                "description": "Blob container name for document uploads"
+            }
+        },
+        "processingContainerName": {
+            "type": "string",
+            "defaultValue": "nexus-processing",
+            "metadata": {
+                "description": "Blob container name for document processing"
+            }
+        },
+        "extractedDataContainerName": {
+            "type": "string",
+            "defaultValue": "nexus-extracted",
+            "metadata": {
+                "description": "Blob container name for extracted data"
+            }
+        },
+        "modelsContainerName": {
+            "type": "string",
+            "defaultValue": "nexus-models",
+            "metadata": {
+                "description": "Blob container name for AI models"
+            }
+        },
+        "enableGpuServices": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Enable advanced multimodal AI with GPU acceleration"
+            }
+        },
+        "replicaCount": {
+            "type": "int",
+            "defaultValue": 2,
+            "minValue": 1,
+            "maxValue": 10,
+            "metadata": {
+                "description": "Number of replicas for enterprise high availability"
+            }
+        },
+        "enableEnterpriseSecurity": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Enable enterprise security features"
+            }
+        },
+        "postgresPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Enterprise PostgreSQL database password"
+            }
+        },
+        "extensionResourceName": {
+            "type": "string",
+            "defaultValue": "[concat('nexus-enterprise-', uniqueString(resourceGroup().id))]",
+            "metadata": {
+                "description": "Name of the Nexus Enterprise extension resource"
+            }
+        }
+    },
+    "variables": {
+        "clusterResourceId": "[resourceId(parameters('clusterResourceGroup'), 'Microsoft.ContainerService/managedClusters', parameters('clusterName'))]",
+        "plan-name": "nexus-enterprise-plan",
+        "plan-publisher": "aktus.ai",
+        "plan-offerID": "nexus_enterprise_knowledge_graph_id",
+        "releaseTrain": "stable",
+        "clusterExtensionTypeName": "aktus.nexus-enterprise"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.KubernetesConfiguration/extensions",
+            "apiVersion": "2023-05-01",
+            "name": "[parameters('extensionResourceName')]",
+            "scope": "[variables('clusterResourceId')]",
+            "properties": {
+                "extensionType": "aktus.nexus-enterprise",
+                "autoUpgradeMinorVersion": true,
+                "releaseTrain": "stable",
+                "configurationSettings": {
+                    "namespace": "[parameters('namespace')]",
+                    "enableGpuServices": "[parameters('enableGpuServices')]",
+                    "replicaCount": "[parameters('replicaCount')]",
+                    "enableEnterpriseSecurity": "[parameters('enableEnterpriseSecurity')]",
+                    "storageAccountName": "[parameters('storageAccountName')]",
+                    "uploadContainerName": "[parameters('uploadContainerName')]",
+                    "processingContainerName": "[parameters('processingContainerName')]",
+                    "extractedDataContainerName": "[parameters('extractedDataContainerName')]",
+                    "modelsContainerName": "[parameters('modelsContainerName')]",
+                    "postgresPassword": "[parameters('postgresPassword')]",
+                    "aktus-postgres-service.enabled": "true",
+                    "aktus-database-service.enabled": "true",
+                    "aktus-inference-service.enabled": "[parameters('enableGpuServices')]",
+                    "aktus-research-service.enabled": "true",
+                    "aktus-multimodal-data-ingestion-service.enabled": "true",
+                    "aktus-embedding-service.enabled": "true",
+                    "aktus-knowledge-assistant-service.enabled": "true",
+                    "global.azure.storage.account": "[parameters('storageAccountName')]",
+                    "global.azure.storage.containers.upload": "[parameters('uploadContainerName')]",
+                    "global.azure.storage.containers.processing": "[parameters('processingContainerName')]",
+                    "global.azure.storage.containers.extracted": "[parameters('extractedDataContainerName')]",
+                    "global.azure.storage.containers.models": "[parameters('modelsContainerName')]",
+                    "global.azure.marketplace.planId": "[variables('plan-name')]",
+                    "global.azure.identity.clientId": "[parameters('extensionResourceName')]",
+                    "global.azure.extension.resourceId": "[resourceId('Microsoft.KubernetesConfiguration/extensions', parameters('extensionResourceName'))]",
+                    "global.azure.marketplace.publisher": "[variables('plan-publisher')]",
+                    "global.azure.marketplace.offerId": "[variables('plan-offerID')]",
+                    "global.azure.marketplace.releaseTrain": "[variables('releaseTrain')]",
+                    "global.azure.marketplace.extensionType": "[variables('clusterExtensionTypeName')]",
+                    "global.azure.deployment.location": "[parameters('clusterLocation')]",
+                    "aktus-database-service.dbConfig.password": "[parameters('postgresPassword')]",
+                    "enterprise.security.enabled": "[parameters('enableEnterpriseSecurity')]",
+                    "enterprise.sla.enabled": "true",
+                    "enterprise.support.level": "premium"
+                },
+                "configurationProtectedSettings": {
+                    "postgresPassword": "[parameters('postgresPassword')]",
+                    "huggingfaceApiKey": "[parameters('huggingfaceApiKey')]",
+                    "openaiApiKey": "[parameters('openaiApiKey')]",
+                    "storageAccountKey": "[parameters('storageAccountKey')]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "extensionResourceName": {
+            "type": "string",
+            "value": "[parameters('extensionResourceName')]"
+        },
+        "clusterName": {
+            "type": "string",
+            "value": "[parameters('clusterName')]"
+        },
+        "namespace": {
+            "type": "string",
+            "value": "[parameters('namespace')]"
+        },
+        "planId": {
+            "type": "string",
+            "value": "nexus-enterprise-plan"
+        }
+    }
+} 
