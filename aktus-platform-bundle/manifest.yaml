@@ -1,0 +1,22 @@
+applicationName: aktus-platform
+publisher: aktus.ai
+description: Aktus AI Platform - Comprehensive AI/ML platform with multimodal data ingestion, embedding services, and knowledge assistant capabilities
+version: 1.0.1
+helmChart: ../Nexus
+clusterArmTemplate: mainTemplate.json
+uiDefinition: createUiDefinition.json
+registryServer: aktusmarketplace.azurecr.io
+extensionRegistrationParameters:
+  defaultScope: namespace
+  supportedScopes: namespace,cluster
+  isSystemExtension: false
+  releaseTrains: stable
+restrictions:
+  location:
+    minCores: 4
+    minNodes: 2
+    minKubernetesVersion: "1.20"
+    requireGpuNodes: false
+    openShiftAllowed: false
+    nodeType: Standard_D4s_v3
+    newClusterRequired: false 
