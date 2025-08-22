@@ -11,15 +11,16 @@ spec:
     metadata:
       labels:
         app: aktus-knowledge-assistant-service
+        azure-extensions-usage-release-identifier: "{{ .Release.Name }}"
     spec:
       terminationGracePeriodSeconds: 60
       serviceAccountName: {{ .Values.serviceAccount.name }}
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
+        agentpool: standardpool
       containers:
         - name: aktus-knowledge-assistant-service
-          image: {{ .Values.aktusKnowledgeAssistant.image }}
-          imagePullPolicy: {{ .Values.aktusKnowledgeAssistant.imagePullPolicy }}
+          image: "{{ .Values.global.azure.images.aktusKnowledgeAssistant.registry }}/{{ .Values.global.azure.images.aktusKnowledgeAssistant.image }}:{{ .Values.global.azure.images.aktusKnowledgeAssistant.tag }}"
+          imagePullPolicy: "{{ .Values.aktusKnowledgeAssistant.imagePullPolicy }}"
           ports:
             - containerPort: {{ .Values.aktusKnowledgeAssistant.port }}
               name: http

@@ -1,6 +1,6 @@
 # service-model-inference/values.yaml
 aktusInference:
-  image: aktusmarketplace.azurecr.io/aktus-inference:latest
+  image: "{{ .Values.global.azure.images.aktusInference.registry }}/{{ .Values.global.azure.images.aktusInference.image }}:{{ .Values.global.azure.images.aktusInference.tag }}"
   nodeSelector: 
     kubernetes.io/arch: amd64
     kubernetes.io/os: linux
@@ -10,6 +10,11 @@ aktusInference:
   platform: linux/amd64
   grpcPort: 50051
   serviceAccount: nexus-primary-cluster-sa
+  
+  # GPU configuration
+  gpu:
+    nvidiaVisibleDevices: "all"
+    cudaVisibleDevices: "0"
   
   # Model configuration paths
   modelConfig:
@@ -36,16 +41,16 @@ aktusInference:
   # Azure Blob Storage configuration
   storage:
     docUpload:
-      storageAccount: "nexusazurestorage"
-      containerName: "nexus-upload"
+      storageAccount: "{{ .Values.global.azure.storage.account }}"
+      containerName: "{{ .Values.global.azure.storage.containers.upload }}"
       readOnly: false
     docProcessing:
-      storageAccount: "nexusazurestorage"
-      containerName: "nexus-processing"
+      storageAccount: "{{ .Values.global.azure.storage.account }}"
+      containerName: "{{ .Values.global.azure.storage.containers.processing }}"
       readOnly: false
     nexusModels:
-      storageAccount: "nexusazurestorage"
-      containerName: "nexus-models"
+      storageAccount: "{{ .Values.global.azure.storage.account }}"
+      containerName: "{{ .Values.global.azure.storage.containers.models }}"
       readOnly: false
   
   resources:

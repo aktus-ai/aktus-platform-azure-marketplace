@@ -14,9 +14,13 @@ spec:
         kubernetes.io/gpu-accelerator: "true"
       labels:
         app: aktus-inference-service
+        azure-extensions-usage-release-identifier: "{{ .Release.Name }}"
     spec:
       nodeSelector:
-        {{- toYaml .Values.aktusInference.nodeSelector | nindent 8 }}
+        kubernetes.io/arch: amd64
+        kubernetes.io/os: linux
+        kubernetes.azure.com/accelerator: nvidia
+        agentpool: gpupool
       tolerations:
         - key: nvidia.com/gpu
           operator: Exists
@@ -28,8 +32,8 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: aktus-inference-service
-          image: {{ .Values.aktusInference.image }}
-          imagePullPolicy: {{ .Values.aktusInference.imagePullPolicy }}
+          image: "{{ .Values.global.azure.images.aktusInference.registry }}/{{ .Values.global.azure.images.aktusInference.image }}:{{ .Values.global.azure.images.aktusInference.tag }}"
+          imagePullPolicy: "{{ .Values.aktusInference.imagePullPolicy }}"
           ports:
             - containerPort: {{ .Values.aktusInference.grpcPort }}
               name: grpc
@@ -58,9 +62,9 @@ spec:
             - name: DEFAULT_DEVICE
               value: {{ .Values.aktusInference.serverConfig.defaultDevice | quote }}
             - name: NVIDIA_VISIBLE_DEVICES
-              value: "all"
+              value: "{{ .Values.aktusInference.gpu.nvidiaVisibleDevices }}"
             - name: CUDA_VISIBLE_DEVICES
-              value: "0"
+              value: "{{ .Values.aktusInference.gpu.cudaVisibleDevices }}"
           volumeMounts:
             - name: document-upload
               mountPath: {{ .Values.aktusInference.paths.docUpload }}

@@ -1,6 +1,6 @@
 # charts/rabbitmq/values.yaml
 rabbitmq:
-  image: rabbitmq:3-management-alpine
+  image: "{{ .Values.global.azure.images.rabbitmq.registry }}/{{ .Values.global.azure.images.rabbitmq.image }}:{{ .Values.global.azure.images.rabbitmq.tag }}"
   username: guest
   password: guest
   managementPort: 15672

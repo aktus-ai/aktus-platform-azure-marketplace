@@ -1,6 +1,6 @@
 # charts/aktus-postgres-service/values.yaml
 aktusPostgres:
-  image: postgres:13.16
+  image: "{{ .Values.global.azure.images.postgres.registry }}/{{ .Values.global.azure.images.postgres.image }}:{{ .Values.global.azure.images.postgres.tag }}"
   username: root
   password: secret
   database: root

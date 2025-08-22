@@ -16,27 +16,28 @@ spec:
         gke-gcsfuse/volumes: "true"
       labels:
         app: aktus-embedding-service
+        azure-extensions-usage-release-identifier: "{{ .Release.Name }}"
     spec:
       terminationGracePeriodSeconds: 60
       serviceAccountName: nexus-primary-cluster-sa
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
+        agentpool: computepool
       containers:
         - name: aktus-embedding-service
-          image: {{ .Values.aktusEmbedding.image }}
-          imagePullPolicy: {{ .Values.aktusEmbedding.imagePullPolicy }}
+          image: "{{ .Values.global.azure.images.aktusEmbedding.registry }}/{{ .Values.global.azure.images.aktusEmbedding.image }}:{{ .Values.global.azure.images.aktusEmbedding.tag }}"
+          imagePullPolicy: "{{ .Values.aktusEmbedding.imagePullPolicy }}"
           ports:
             - containerPort: {{ .Values.aktusEmbedding.port }}
               name: http
           env:
             - name: SUMMARIZATION_NUM_PAGES
-              value: "50"
+              value: "{{ .Values.aktusEmbedding.app.summarizationNumPages }}"
             - name: CHUNKING_CONCURRENCY
-              value: "50"
+              value: "{{ .Values.aktusEmbedding.app.chunkingConcurrency }}"
             - name: CHUNKING_BATCH_SIZE
-              value: "15"
+              value: "{{ .Values.aktusEmbedding.app.chunkingBatchSize }}"
             - name: EMBEDDING_BATCH_SIZE
-              value: "15"
+              value: "{{ .Values.aktusEmbedding.app.embeddingBatchSize }}"
             - name: USERNAME
               value: "{{ .Values.aktusEmbedding.auth.username }}"
             - name: PASSWORD
@@ -63,17 +64,17 @@ spec:
             - name: DB_MANAGER_HOST
               value: "{{ .Values.aktusEmbedding.dbManager.host }}"
             - name: QDRANT_URL
-              value: "http://qdrant:6333"
+              value: "{{ .Values.aktusEmbedding.endpoints.qdrant }}"
             - name: VECTOR_DB_TYPE
-              value: "QDRANT"
+              value: "{{ .Values.aktusEmbedding.endpoints.vectorDbType }}"
             - name: ENV
-              value: "dev"
+              value: "{{ .Values.aktusEmbedding.app.env }}"
             - name: COMMUNITY_REPORT_GRAPH_PROMPT_PATH
-              value: /app/graph/prompts/community_report_graph.txt
+              value: "{{ .Values.aktusEmbedding.prompts.communityReportGraph }}"
             - name: EXTRACT_CLAIMS_PROMPT_PATH
-              value: /app/graph/prompts/extract_claims.txt
+              value: "{{ .Values.aktusEmbedding.prompts.extractClaims }}"
             - name: PROJECT_ROOT_PATH
-              value: /graphrag_data
+              value: "{{ .Values.aktusEmbedding.prompts.projectRoot }}"
           volumeMounts:
             - name: extracted-data
               mountPath: {{ .Values.aktusEmbedding.paths.extractedData }}

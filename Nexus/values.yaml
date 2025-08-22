@@ -1,4 +1,64 @@
 # values.yaml
+
+# Global configuration for Azure Marketplace
+global:
+  azure:
+    images:
+      aktusInference: 
+        registry: aktusmarketplace.azurecr.io
+        image: aktus-inference
+        tag: latest
+      aktusDatabase:
+        registry: aktusmarketplace.azurecr.io
+        image: aktus-db-manager
+        tag: latest
+      aktusResearch:
+        registry: aktusmarketplace.azurecr.io
+        image: aktus-research
+        tag: latest
+      aktusEmbedding:
+        registry: aktusmarketplace.azurecr.io
+        image: aktus-embedding
+        tag: latest
+      aktusKnowledgeAssistant:
+        registry: aktusmarketplace.azurecr.io
+        image: aktus-knowledge-assistant
+        tag: latest
+      aktusDataIngestion:
+        registry: aktusmarketplace.azurecr.io
+        image: aktus-mdi
+        tag: latest
+      postgres:
+        registry: docker.io
+        image: amd64/postgres
+        tag: "18beta3-alpine"
+      redis:
+        registry: docker.io
+        image: amd64/redis
+        tag: "7-alpine"
+      rabbitmq:
+        registry: docker.io
+        image: amd64/rabbitmq
+        tag: "3-management"
+      qdrant:
+        registry: docker.io
+        image: qdrant/qdrant
+        tag: "latest"
+    marketplace:
+      planId: "DONOTMODIFY"
+    identity:
+      clientId: "DONOTMODIFY"
+    extension:
+      resourceId: "DONOTMODIFY"
+    storage:
+      account: "nexusenterprisestorage"
+      key: ""
+      containers:
+        upload: "nexus-upload"
+        processing: "nexus-processing"
+        extracted: "nexus-extracted"
+        models: "nexus-models"
+
 aktus-postgres-service:
   enabled: true
 

@@ -17,7 +17,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: postgres-backup
-              image: postgres:13.16
+              image: "{{ .Values.global.azure.images.postgres.registry }}/{{ .Values.global.azure.images.postgres.image }}:{{ .Values.global.azure.images.postgres.tag }}"
               imagePullPolicy: IfNotPresent
               command: ["/bin/bash", "/scripts/backup.sh"]
               env:

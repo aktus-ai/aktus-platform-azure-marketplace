@@ -16,13 +16,14 @@ spec:
         gke-gcsfuse/volumes: "true"
       labels:
         app: aktus-multimodal-data-ingestion-service
+        azure-extensions-usage-release-identifier: "{{ .Release.Name }}"
     spec:
       terminationGracePeriodSeconds: 60
       
       containers:
         - name: aktus-multimodal-data-ingestion-service
-          image: {{ .Values.aktusMdi.image }}
-          imagePullPolicy: {{ .Values.aktusMdi.imagePullPolicy }}
+          image: "{{ .Values.global.azure.images.aktusDataIngestion.registry }}/{{ .Values.global.azure.images.aktusDataIngestion.image }}:{{ .Values.global.azure.images.aktusDataIngestion.tag }}"
+          imagePullPolicy: "{{ .Values.aktusMdi.imagePullPolicy }}"
           stdin: true
           tty: true
           workingDir: /usr/src/app
@@ -35,11 +36,11 @@ spec:
               name: layout
           env:
             - name: CELERY_CONCURRENCY
-              value: "48"
+              value: "{{ .Values.aktusMdi.app.celeryC }}"
             - name: OCR_TEMPERATURE
-              value: "0.0"
+              value: "{{ .Values.aktusMdi.app.ocrTemperature }}"
             - name: DB_MANAGER_URL
-              value: "http://aktus-database:8080"
+              value: "{{ .Values.aktusMdi.endpoints.dbManager }}"
             - name: RABBITMQ_USERNAME
               value: "{{ .Values.aktusMdi.rabbitmq.username }}"
             - name: RABBITMQ_PASSWORD
@@ -57,7 +58,7 @@ spec:
             - name: RABBITMQ_MONITOR_PASSWORD
               value: "{{ .Values.aktusMdi.rabbitmq.password }}"
             - name: REDIS_BACKEND_URI
-              value: "redis://{{ .Values.aktusMdi.redis.host }}/0"
+              value: "{{ .Values.aktusMdi.redis.backendUri }}"
             - name: VDB_ENDPOINT
               value: "http://{{ .Values.aktusMdi.vectorEmbedding.host }}/vectorindex/embed_data"
             - name: OPENAI_API_KEY
@@ -88,11 +89,11 @@ spec:
             - name: AKTUS_CHAT_SERVER_ADDRESS
               value: "{{ .Values.aktusMdi.modelInference.host }}"
             - name: PYTHONUNBUFFERED
-              value: "1"
+              value: "{{ .Values.aktusMdi.app.pythonUnbuffered }}"
             - name: VDB_GRAPHRAG_INDEXING_ENDPOINT
               value: "http://{{ .Values.aktusMdi.vectorEmbedding.host }}/vectorindex/index_graphrag"
             - name: USE_MINICPM_FOR_FLOWCHART
-              value: "true"
+              value: "{{ .Values.aktusMdi.app.useMinicpmForFlowchart }}"
           volumeMounts:
             - name: doc-processing
               mountPath: {{ .Values.aktusMdi.paths.docProcessing }}
@@ -104,7 +105,7 @@ spec:
             {{- toYaml .Values.aktusMdi.resources | nindent 12 }}
       serviceAccountName: {{ .Values.aktusMdi.serviceAccount | default "nexus-primary-cluster-sa" }}
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
+        agentpool: standardpool
       volumes:
         - name: doc-processing
           persistentVolumeClaim:

@@ -1,31 +1,56 @@
 # aktus-embedding-service/values.yaml
 aktusEmbedding:
-  image: aktusmarketplace.azurecr.io/aktus-embedding:latest
+  image: "{{ .Values.global.azure.images.aktusEmbedding.registry }}/{{ .Values.global.azure.images.aktusEmbedding.image }}:{{ .Values.global.azure.images.aktusEmbedding.tag }}"
   imagePullPolicy: Always
   serviceAccount: nexus-primary-cluster-sa
   port: 8080
+  
   auth:
     username: "guest"
     password: "guest"
+    
   uvicorn:
     host: "0.0.0.0"
     port: "8080"
     logLevel: "info"
     timeoutKeepalive: "3600"
+    
+  # Application configuration
+  app:
+    env: "dev"
+    summarizationNumPages: "50"
+    chunkingConcurrency: "50"
+    chunkingBatchSize: "15"
+    embeddingBatchSize: "15"
+    
+  # Service endpoints
+  endpoints:
+    qdrant: "http://qdrant:6333"
+    vectorDbType: "QDRANT"
+    
+  # Prompt paths
+  prompts:
+    communityReportGraph: "/app/graph/prompts/community_report_graph.txt"
+    extractClaims: "/app/graph/prompts/extract_claims.txt"
+    projectRoot: "/graphrag_data"
+    
   mdiService:
     endpoint: "http://aktus-multimodal-data-ingestion:5315"
+    
   dbManager:
     host: "http://aktus-database:8080"
+    
   paths:
     extractedData: "/extracted_data"
     docUpload: "/document_upload"
     docProcessing: "/doc_processing"
     chromaDb: "/chroma"
     graphragData: "/graphrag_data"
+    
   storage:
     extractedData:
-      storageAccount: "nexusazurestorage"
-      containerName: "nexus-extracted"
+      storageAccount: "{{ .Values.global.azure.storage.account }}"
+      containerName: "{{ .Values.global.azure.storage.containers.extracted }}"
       readOnly: false
       
   resources:

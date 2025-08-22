@@ -1,8 +1,13 @@
 # aktus-gmp-db-manager/values.yaml
 aktusDatabase:
-  image: aktusmarketplace.azurecr.io/aktus-db-manager:latest
+  image: "{{ .Values.global.azure.images.aktusDatabase.registry }}/{{ .Values.global.azure.images.aktusDatabase.image }}:{{ .Values.global.azure.images.aktusDatabase.tag }}"
   imagePullPolicy: Always
   port: 80
+  
+  # Application configuration
+  app:
+    logLevel: "DEBUG"
+    
   resources:
     requests:
       cpu: "500m"
@@ -10,6 +15,7 @@ aktusDatabase:
     limits:
       cpu: "1000m"
       memory: "2Gi"
+      
   probes:
     liveness:
       initialDelaySeconds: 30
@@ -17,6 +23,7 @@ aktusDatabase:
     readiness:
       initialDelaySeconds: 5
       periodSeconds: 5
+      
   dbConfig:
     username: root
     password: secret

@@ -12,12 +12,13 @@ spec:
     metadata:
       labels:
         app: redis
+        azure-extensions-usage-release-identifier: "{{ .Release.Name }}"
     spec:
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
+        agentpool: standardpool
       containers:
         - name: redis
-          image: {{ .Values.redis.image }}
+          image: "{{ .Values.global.azure.images.redis.registry }}/{{ .Values.global.azure.images.redis.image }}:{{ .Values.global.azure.images.redis.tag }}"
           args: ["--appendonly", "yes"]
           ports:
             - containerPort: {{ .Values.redis.port }}

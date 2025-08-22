@@ -1,5 +1,5 @@
 qdrant:
-  image: qdrant/qdrant:v1.13.1
+  image: "{{ .Values.global.azure.images.qdrant.registry }}/{{ .Values.global.azure.images.qdrant.image }}:{{ .Values.global.azure.images.qdrant.tag }}"
   imagePullPolicy: Always
   port: 6333
   serviceAccount: nexus-primary-cluster-sa

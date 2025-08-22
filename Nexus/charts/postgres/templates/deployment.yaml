@@ -14,15 +14,16 @@ spec:
     metadata:
       labels:
         app: aktus-postgres-service
+        azure-extensions-usage-release-identifier: "{{ .Release.Name }}"
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
+        agentpool: standardpool
       securityContext:
         fsGroup: 999
       containers:
         - name: postgres
-          image: {{ .Values.aktusPostgres.image }}
+          image: "{{ .Values.global.azure.images.postgres.registry }}/{{ .Values.global.azure.images.postgres.image }}:{{ .Values.global.azure.images.postgres.tag }}"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: {{ .Values.aktusPostgres.port }}
@@ -38,8 +39,7 @@ spec:
               value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: postgres-data
-              mountPath: /var/lib/postgresql/data
-              subPath: {{ .Values.aktusPostgres.persistence.subPath }}
+              mountPath: /var/lib/postgresql
             - name: init-scripts
               mountPath: /docker-entrypoint-initdb.d
           livenessProbe:

@@ -15,22 +15,23 @@ spec:
         gke-gcsfuse/volumes: "true"
       labels:
         app: aktus-research-service
+        azure-extensions-usage-release-identifier: "{{ .Release.Name }}"
     spec:
       terminationGracePeriodSeconds: 60
       
       serviceAccountName: nexus-primary-cluster-sa
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
+        agentpool: standardpool
       containers:
         - name: aktus-research-service
-          image: {{ .Values.aktusResearch.image }}
-          imagePullPolicy: {{ .Values.aktusResearch.imagePullPolicy }}
+          image: "{{ .Values.global.azure.images.aktusResearch.registry }}/{{ .Values.global.azure.images.aktusResearch.image }}:{{ .Values.global.azure.images.aktusResearch.tag }}"
+          imagePullPolicy: "{{ .Values.aktusResearch.imagePullPolicy }}"
           ports:
             - containerPort: {{ .Values.aktusResearch.port }}
               name: http
           env:
             - name: EXPERIMENTAL
-              value: "true"
+              value: "{{ .Values.aktusResearch.app.experimental }}"
             - name: CREDENTIALS_USERNAME
               value: "{{ .Values.aktusResearch.auth.username }}"
             - name: CREDENTIALS_PASSWORD
@@ -59,25 +60,25 @@ spec:
             - name: ITERDRAG_ENDPOINT
               value: "http://{{ .Values.aktusResearch.embeddingService.host }}/iterdrag/"
             - name: GRAPHRAG_ENDPOINT
-              value: "http://aktus-embedding:8080/graphrag/search"
+              value: "{{ .Values.aktusResearch.endpoints.graphrag }}"
             - name: ENV
-              value: "research"
+              value: "{{ .Values.aktusResearch.app.env }}"
             - name: CONTEXT_PATH
-              value: /extracted_data/lease-abstraction/2025-leases/context.txt
+              value: "{{ .Values.aktusResearch.paths.contextPath }}"
             - name: ENABLE_LEASE_DEMO
-              value: 'true'
+              value: "{{ .Values.aktusResearch.app.enableLeaseDemo }}"
             - name: LEASE_DATA_PATH
-              value: /extracted_data
+              value: "{{ .Values.aktusResearch.paths.leaseDataPath }}"
             - name: LEASE_DATA_ABSTRACT_FOLDER
-              value: abstract
+              value: "{{ .Values.aktusResearch.paths.leaseDataAbstractFolder }}"
             - name: LEASE_DATA_CASHFLOW_FOLDER
-              value: cashflow
+              value: "{{ .Values.aktusResearch.paths.leaseDataCashflowFolder }}"
             - name: VDB_ENDPOINT
-              value: http://aktus-embedding:8080
+              value: "{{ .Values.aktusResearch.endpoints.vectorDb }}"
             - name: DB_MANAGER_ENDPOINT
-              value: http://aktus-database:8080
+              value: "{{ .Values.aktusResearch.endpoints.dbManager }}"
             - name: REDIS_BACKEND_URI
-              value: redis
+              value: "{{ .Values.aktusResearch.endpoints.redisBackend }}"
           volumeMounts:
             - name: document-upload
               mountPath: {{ .Values.aktusResearch.paths.docUpload }}

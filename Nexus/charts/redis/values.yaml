@@ -1,6 +1,6 @@
 # charts/redis/values.yaml
 redis:
-  image: redis:7.4-alpine
+  image: "{{ .Values.global.azure.images.redis.registry }}/{{ .Values.global.azure.images.redis.image }}:{{ .Values.global.azure.images.redis.tag }}"
   port: 6379
   persistence:
     enabled: true

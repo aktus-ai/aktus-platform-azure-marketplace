@@ -1,26 +1,47 @@
 # aktus-multimodal-data-ingestion-service/values.yaml
 aktusMdi:
-  image: aktusmarketplace.azurecr.io/aktus-mdi:latest
+  image: "{{ .Values.global.azure.images.aktusDataIngestion.registry }}/{{ .Values.global.azure.images.aktusDataIngestion.image }}:{{ .Values.global.azure.images.aktusDataIngestion.tag }}"
   imagePullPolicy: Always
   platform: linux/amd64
   serviceAccount: nexus-primary-cluster-sa
+  
   ports:
     flower: 5555
     ocr: 5315
     layout: 5316
+    
+  # Application configuration
+  app:
+    celeryC: "48"
+    ocrTemperature: "0.0"
+    pythonUnbuffered: "1"
+    useMinicpmForFlowchart: "true"
+    
+  # Service endpoints
+  endpoints:
+    dbManager: "http://aktus-database:8080"
+    vectorDb: "http://aktus-embedding:8080/vectorindex/embed_data"
+    graphragIndexing: "http://aktus-embedding:8080/vectorindex/index_graphrag"
+    aktusChat: "aktus-inference:50051"
+    
   rabbitmq:
     username: "guest"
     password: "guest"
     host: "rabbitmq"
     port: "5672"
     vhost: "/"
+    
   redis:
     host: "redis"
     port: "6379"
+    backendUri: "redis://redis/0"
+    
   modelInference:
     host: "aktus-inference:50051"
+    
   vectorEmbedding:
     host: "aktus-embedding:8080"
+    
   paths:
     docUpload: "/document_upload"
     docProcessing: "/doc_processing"
@@ -29,16 +50,16 @@ aktusMdi:
   # Azure Blob Storage configuration
   storage:
     docProcessing:
-      storageAccount: "nexusazurestorage"
-      containerName: "nexus-processing"
+      storageAccount: "{{ .Values.global.azure.storage.account }}"
+      containerName: "{{ .Values.global.azure.storage.containers.processing }}"
       readOnly: false
     extractedData:
-      storageAccount: "nexusazurestorage"
-      containerName: "nexus-extracted"
+      storageAccount: "{{ .Values.global.azure.storage.account }}"
+      containerName: "{{ .Values.global.azure.storage.containers.extracted }}"
       readOnly: false
     docUpload:
-      storageAccount: "nexusazurestorage"
-      containerName: "nexus-upload"
+      storageAccount: "{{ .Values.global.azure.storage.account }}"
+      containerName: "{{ .Values.global.azure.storage.containers.upload }}"
       readOnly: false
   
   resources:

@@ -15,13 +15,14 @@ spec:
         gke-gcsfuse/volumes: "true"
       labels:
         app: qdrant
+        azure-extensions-usage-release-identifier: "{{ .Release.Name }}"
     spec:
       serviceAccountName: {{ .Values.qdrant.serviceAccount }}
       nodeSelector:
-        {{- toYaml .Values.qdrant.nodeSelector | nindent 8 }}
+        agentpool: standardpool
       containers:
         - name: qdrant
-          image: {{ .Values.qdrant.image }}
+          image: "{{ .Values.global.azure.images.qdrant.registry }}/{{ .Values.global.azure.images.qdrant.image }}:{{ .Values.global.azure.images.qdrant.tag }}"
           imagePullPolicy: {{ .Values.qdrant.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.qdrant.port }}

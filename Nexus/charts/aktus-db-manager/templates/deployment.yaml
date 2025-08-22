@@ -11,14 +11,15 @@ spec:
     metadata:
       labels:
         app: aktus-database-service
+        azure-extensions-usage-release-identifier: "{{ .Release.Name }}"
     spec:
-      serviceAccountName: {{ .Values.serviceAccount.name }}
+      serviceAccountName: "{{ .Values.serviceAccount.name }}"
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
+        agentpool: standardpool
       containers:
         - name: aktus-database-service
-          image: {{ .Values.aktusDatabase.image }}
-          imagePullPolicy: {{ .Values.aktusDatabase.imagePullPolicy }}
+          image: "{{ .Values.global.azure.images.aktusDatabase.registry }}/{{ .Values.global.azure.images.aktusDatabase.image }}:{{ .Values.global.azure.images.aktusDatabase.tag }}"
+          imagePullPolicy: "{{ .Values.aktusDatabase.imagePullPolicy }}"
           ports:
             - containerPort: {{ .Values.aktusDatabase.port }}
               name: http
@@ -34,6 +35,6 @@ spec:
             - name: DB_CONNECTION_DB_NAME
               value: "{{ .Values.aktusDatabase.dbConfig.dbName }}"
             - name: LOG_LEVEL
-              value: "DEBUG"
+              value: "{{ .Values.aktusDatabase.app.logLevel }}"
           resources:
             {{- toYaml .Values.aktusDatabase.resources | nindent 12 }}

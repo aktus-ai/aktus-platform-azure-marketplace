@@ -1,5 +1,5 @@
 aktusKnowledgeAssistant:
-  image: aktusmarketplace.azurecr.io/aktus-knowledge-assistant:latest
+  image: "{{ .Values.global.azure.images.aktusKnowledgeAssistant.registry }}/{{ .Values.global.azure.images.aktusKnowledgeAssistant.image }}:{{ .Values.global.azure.images.aktusKnowledgeAssistant.tag }}"
   imagePullPolicy: Always
   port: 80
   service:

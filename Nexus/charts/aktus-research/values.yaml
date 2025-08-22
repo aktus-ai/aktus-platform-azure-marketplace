@@ -1,5 +1,5 @@
 aktusResearch:
-  image: aktusmarketplace.azurecr.io/aktus-research:latest
+  image: "{{ .Values.global.azure.images.aktusResearch.registry }}/{{ .Values.global.azure.images.aktusResearch.image }}:{{ .Values.global.azure.images.aktusResearch.tag }}"
   imagePullPolicy: Always
   port: 8080
   service:
@@ -16,6 +16,19 @@ aktusResearch:
     logLevel: "debug"
     timeoutKeepAlive: "3600"
   
+  # Application configuration
+  app:
+    experimental: "true"
+    env: "research"
+    enableLeaseDemo: "true"
+  
+  # Service endpoints
+  endpoints:
+    graphrag: "http://aktus-embedding:8080/graphrag/search"
+    vectorDb: "http://aktus-embedding:8080"
+    dbManager: "http://aktus-database:8080"
+    redisBackend: "redis"
+  
   anyscale:
     apiBase: "https://api.endpoints.anyscale.com/v1"
   
@@ -29,20 +42,24 @@ aktusResearch:
     docUpload: "/document_upload"
     docImage: "/doc_processing" 
     extractedData: "/extracted_data"
+    contextPath: "/extracted_data/lease-abstraction/2025-leases/context.txt"
+    leaseDataPath: "/extracted_data"
+    leaseDataAbstractFolder: "abstract"
+    leaseDataCashflowFolder: "cashflow"
   
   # Azure Blob Storage configuration
   storage:
     documentUpload:
-      storageAccount: "nexusazurestorage"
-      containerName: "nexus-upload"
+      storageAccount: "{{ .Values.global.azure.storage.account }}"
+      containerName: "{{ .Values.global.azure.storage.containers.upload }}"
       readOnly: false
     docProcessing:
-      storageAccount: "nexusazurestorage"
-      containerName: "nexus-processing"
+      storageAccount: "{{ .Values.global.azure.storage.account }}"
+      containerName: "{{ .Values.global.azure.storage.containers.processing }}"
       readOnly: false
     extractedData:
-      storageAccount: "nexusazurestorage"
-      containerName: "nexus-extracted"
+      storageAccount: "{{ .Values.global.azure.storage.account }}"
+      containerName: "{{ .Values.global.azure.storage.containers.extracted }}"
       readOnly: false
   
   resources:

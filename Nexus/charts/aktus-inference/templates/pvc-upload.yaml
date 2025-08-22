@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nexus-upload-pvc
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    volume.beta.kubernetes.io/storage-class: azure-blob-fuse
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: azure-blob-fuse
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-upload-pv
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: azure-blob-fuse
+  mountOptions:
+    - -o allow_other
+    - --file-cache-timeout-in-seconds=0
+    - --use-attr-cache=false
+  csi:
+    driver: blob.csi.azure.com
+    readOnly: false
+    volumeHandle: {{ .Release.Name }}-upload-handle
+    volumeAttributes:
+      containerName: {{ .Values.global.azure.storage.containers.upload }}
+      storageAccount: {{ .Values.global.azure.storage.account }}
+      protocol: fuse2
+    nodeStageSecretRef:
+      name: azure-storage-secret
+      namespace: {{ .Release.Namespace }} 

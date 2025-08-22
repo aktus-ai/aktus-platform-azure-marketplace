@@ -12,12 +12,13 @@ spec:
     metadata:
       labels:
         app: rabbitmq
+        azure-extensions-usage-release-identifier: "{{ .Release.Name }}"
     spec:
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
+        agentpool: standardpool
       containers:
         - name: rabbitmq
-          image: {{ .Values.rabbitmq.image }}
+          image: "{{ .Values.global.azure.images.rabbitmq.registry }}/{{ .Values.global.azure.images.rabbitmq.image }}:{{ .Values.global.azure.images.rabbitmq.tag }}"
           ports:
             - containerPort: {{ .Values.rabbitmq.amqpPort }}
               name: amqp
